@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 export const encodeCesar = (msg, deslocamento) => {
   let resultado = "";
 
@@ -259,7 +260,7 @@ function findMatrixInverse(matrix, mod) {
   const modInv = modInverse(det, mod);
 
   if (modInv === null) {
-    throw new Error('A matriz chave não é inversível.');
+    throw new Error("A matriz chave não é inversível.");
   }
 
   const n = matrix.length;
@@ -290,16 +291,16 @@ function findMatrixInverse(matrix, mod) {
 // Função para cifrar uma mensagem usando a Cifra de Hill
 export const encodeHill = (message, keyMatrix, mod) => {
   if (message.length % keyMatrix.length !== 0) {
-    return 'ERRO: O tamanho da mensagem deve ser um múltiplo do tamanho da matriz chave.'
+    return "ERRO: O tamanho da mensagem deve ser um múltiplo do tamanho da matriz chave.";
   }
 
-  message = message.toUpperCase().replace(/[^A-Z]/g, ''); // Converter para maiúsculas e remover caracteres não alfabéticos
+  message = message.toUpperCase().replace(/[^A-Z]/g, ""); // Converter para maiúsculas e remover caracteres não alfabéticos
   const n = keyMatrix.length;
-  let ciphertext = '';
+  let ciphertext = "";
 
   for (let i = 0; i < message.length; i += n) {
     const block = message.slice(i, i + n);
-    const blockVector = block.split('').map(char => char.charCodeAt(0) - 65); // Converter letras para números (A=0, B=1, ..., Z=25)
+    const blockVector = block.split("").map((char) => char.charCodeAt(0) - 65); // Converter letras para números (A=0, B=1, ..., Z=25)
     const resultVector = [];
 
     for (let row = 0; row < n; row++) {
@@ -310,25 +311,29 @@ export const encodeHill = (message, keyMatrix, mod) => {
       resultVector.push(sum % mod);
     }
 
-    ciphertext += resultVector.map(num => String.fromCharCode(num + 65)).join(''); // Converter números de volta para letras
+    ciphertext += resultVector
+      .map((num) => String.fromCharCode(num + 65))
+      .join(""); // Converter números de volta para letras
   }
 
   return ciphertext;
-}
+};
 
 // Função para decifrar uma mensagem usando a Cifra de Hill
 export const decodeHill = (ciphertext, keyMatrix, mod) => {
   if (ciphertext.length % keyMatrix.length !== 0) {
-    throw new Error('O tamanho da mensagem criptografada deve ser um múltiplo do tamanho da matriz chave.');
+    throw new Error(
+      "O tamanho da mensagem criptografada deve ser um múltiplo do tamanho da matriz chave."
+    );
   }
 
   const inverseMatrix = findMatrixInverse(keyMatrix, mod);
   const n = keyMatrix.length;
-  let plaintext = '';
+  let plaintext = "";
 
   for (let i = 0; i < ciphertext.length; i += n) {
     const block = ciphertext.slice(i, i + n);
-    const blockVector = block.split('').map(char => char.charCodeAt(0) - 65); // Converter letras para números (A=0, B=1, ..., Z=25)
+    const blockVector = block.split("").map((char) => char.charCodeAt(0) - 65); // Converter letras para números (A=0, B=1, ..., Z=25)
     const resultVector = [];
 
     for (let row = 0; row < n; row++) {
@@ -336,11 +341,47 @@ export const decodeHill = (ciphertext, keyMatrix, mod) => {
       for (let col = 0; col < n; col++) {
         sum += inverseMatrix[row][col] * blockVector[col];
       }
-      resultVector.push((sum % mod + mod) % mod); // Lidar com números negativos
+      resultVector.push(((sum % mod) + mod) % mod); // Lidar com números negativos
     }
 
-    plaintext += resultVector.map(num => String.fromCharCode(num + 65)).join(''); // Converter números de volta para letras
+    plaintext += resultVector
+      .map((num) => String.fromCharCode(num + 65))
+      .join(""); // Converter números de volta para letras
   }
 
   return plaintext;
-}
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+/////// CIFRA RSA
+
+// geradores de chave RSA para react não funcionam direito, apenas no node
+// portanto foram utilizadas chaves fixas:
+export const publicKey = `
+-----BEGIN PUBLIC KEY-----
+MIGeMA0GCSqGSIb3DQEBAQUAA4GMADCBiAKBgHVqilOUTbd6f0Y8Q4xsa+mbcPAz
+fjd8SoGMwu+bBfzW1gskc/oDeiSRDFJfx39ho5MsfM+bkb1sdD5KBhgXmyBLpOjx
+wIwOgI2JNzrPNEMNPRcUbC8IqoSUTIp2VUZ0KJ1FH3LgekFz6SNfYcxXkn+xwKUX
+Cvjt14x+R+egSVpnAgMBAAE=
+-----END PUBLIC KEY-----
+`;
+
+export const privateKey = `
+-----BEGIN RSA PRIVATE KEY-----
+MIICWgIBAAKBgHVqilOUTbd6f0Y8Q4xsa+mbcPAzfjd8SoGMwu+bBfzW1gskc/oD
+eiSRDFJfx39ho5MsfM+bkb1sdD5KBhgXmyBLpOjxwIwOgI2JNzrPNEMNPRcUbC8I
+qoSUTIp2VUZ0KJ1FH3LgekFz6SNfYcxXkn+xwKUXCvjt14x+R+egSVpnAgMBAAEC
+gYBE3vY+Kgof6glHgEe60UnG37cyHXIWR6BINvGMq6iqcrVgGcSxTGLTmgTZOHcD
+H5lb1UdsWvr0We4hLzg933LMhgIVHI0nIg0/F1seRDfK7c9K0xgtQC5StUoi0PNl
+JIzEahXhp8wNfSDgs1aKCzLB/qA45MsEsZP6XYokFBzpqQJBALcGM8/R59hukKAK
+me7fZ2t8RJiPLACPkk3072/Ev9EK9OKv88M/5SGpEXmgrNvsPm3QP5HpIASq++QB
+bVlD0LsCQQCkO4oPnCiFnAa5F0fIUsksmMmSHpsuHu+qs+gEJU5za7OKTehPh5Ae
+PJhCXgNO5FIa12t11EKe45AsSF8a0MhFAkBYkH7H5Ln9CFuhph+g8KgZ4hNLg5R2
+XQMeCBVJD3sGi/e+LgiWBbg51pcnNPIQpbv75ZatY5Ljz11+kpY4aNF7AkB9+B0h
+dAmw0chmV/D7OmSMDHUv2sH0Uk5KhMvFwke2SDniL3es6LImPxwaa7nl3UMMy4bl
+TfX7oViIXspz6whxAkAT72zTNmSh2q3WXTemdeKl9Q70/VgrmOYKB/gtrXAT7tT7
+sxWLDaBPXnjlO8dfd8wzOL0mEeyjLjf9DiNRHyVM
+-----END RSA PRIVATE KEY-----
+`;
+
+// para fazer a encriptação foi utilizada API JSEncrypt

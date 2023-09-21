@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import "./App.css";
 import { TextArea, Button, Select, TextField } from "bold-ui";
-import forge from 'node-forge';
 import {
   encodeCesar,
   encodeVernam,
@@ -11,9 +10,10 @@ import {
   decodePlayfair,
   encodeHill,
   decodeHill,
-  encodeRSA,
-  decodeRSA   
+  privateKey,
+  publicKey
 } from "./cyphers-functions";
+import JSEncrypt from "jsencrypt";
 
 function App() {
   const items = ["Cesar", "Vernam", "Vigenère", "Playfair", "Hill", "RSA"];
@@ -29,7 +29,13 @@ function App() {
     [13, 16, 10],
     [20, 17, 15],
   ];
-  
+
+  const encryptor = new JSEncrypt();
+  encryptor.setPublicKey(publicKey);
+
+  const decryptor = new JSEncrypt();
+  decryptor.setPrivateKey(privateKey);
+
   const handleChangeValue = (item) => setValue(item);
   const handleChangeMsg = (event) => setMsg(event.target.value);
   const handleChangeCesarKey = (event) => setCesarKey(event.target.value);
@@ -44,8 +50,6 @@ function App() {
       width: "130px",
     },
   };
-
-
 
   const encode = () => {
     switch (value) {
@@ -64,11 +68,11 @@ function App() {
       case "Hill":
         setResultado(encodeHill(msg, hillMatrizKey, 26));
         break;
-      case "RSA": 
-        //setResultado(encodeRSA(msg, chavePublica));
+      case "RSA":
+        setResultado(encryptor.encrypt(msg));
         break;
       default:
-        console.log("fail");
+        console.log("ERRO");
     }
   };
 
@@ -89,14 +93,15 @@ function App() {
       case "Hill":
         setResultado(decodeHill(msg, hillMatrizKey, 26));
         break;
-      case "RSA":        
-        setResultado(decodeRSA(msg, keys.privateKey));
+      case "RSA":
+        setResultado(decryptor.decrypt(msg));
         break;
       default:
-        console.log("fail");
+        console.log("ERRO");
     }
   };
 
+  // renderização da interface
   return (
     <div className="App">
       <header className="App-header">
@@ -173,7 +178,7 @@ function App() {
       <div className="App-result">
         <p> Resultado: </p>
         <p> {resultado} </p>
-      </div>      
+      </div>
     </div>
   );
 }
